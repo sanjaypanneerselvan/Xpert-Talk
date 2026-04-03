@@ -34,11 +34,11 @@ const ProfilePage: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Profile Header */}
-            <div className="relative h-64 bg-slate-900 rounded-[3rem] shadow-2xl">
-                <div className="absolute -bottom-20 left-12 flex items-end gap-10">
+            <div className="relative h-48 md:h-64 bg-slate-900 rounded-[2.5rem] md:rounded-[3rem] shadow-2xl">
+                <div className="absolute -bottom-16 md:-bottom-20 left-0 right-0 md:left-12 md:right-auto px-6 md:px-0 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-10">
                     <div className="relative group">
-                        <div className="w-52 h-52 rounded-[3.5rem] bg-white p-3 shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-[1.02]">
-                            <div className="w-full h-full rounded-[2.8rem] bg-slate-50 flex items-center justify-center text-slate-300 text-6xl font-black border-4 border-slate-100 overflow-hidden relative shadow-inner">
+                        <div className="w-32 h-32 md:w-52 md:h-52 rounded-[2rem] md:rounded-[3.5rem] bg-white p-2 md:p-3 shadow-2xl relative z-10 transition-transform duration-500 group-hover:scale-[1.02]">
+                            <div className="w-full h-full rounded-[1.6rem] md:rounded-[2.8rem] bg-slate-50 flex items-center justify-center text-slate-300 text-4xl md:text-6xl font-black border-2 md:border-4 border-slate-100 overflow-hidden relative shadow-inner">
                                 {profile?.photoURL ? (
                                     <img
                                         src={profile.photoURL}
@@ -51,18 +51,18 @@ const ProfilePage: React.FC = () => {
                             </div>
                         </div>
                         <div className="absolute inset-0 bg-slate-400/20 blur-3xl rounded-full scale-75 group-hover:scale-100 transition-transform duration-500"></div>
-                        <button className="absolute bottom-2 right-2 p-3 bg-slate-900 text-white rounded-2xl shadow-xl hover:bg-black transition-all border-4 border-white active:scale-90">
-                            <Camera size={20} />
+                        <button className="absolute -bottom-1 -right-1 md:bottom-2 md:right-2 p-2.5 md:p-3 bg-slate-900 text-white rounded-xl md:rounded-2xl shadow-xl hover:bg-black transition-all border-2 md:border-4 border-white active:scale-90">
+                            <Camera size={18} />
                         </button>
                     </div>
-                    <div className="mb-24 relative z-20">
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase drop-shadow-lg">{profile?.displayName}</h1>
-                        <div className="flex items-center gap-4 mt-4">
-                            <div className="px-5 py-2 bg-white/10 backdrop-blur-md text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] border border-white/20 shadow-lg">
+                    <div className="mb-0 md:mb-24 text-center md:text-left relative z-20">
+                        <h1 className="text-3xl md:text-5xl font-black text-slate-900 md:text-white tracking-tighter uppercase md:drop-shadow-lg">{profile?.displayName}</h1>
+                        <div className="flex flex-col md:flex-row items-center gap-3 md:gap-4 mt-3 md:mt-4">
+                            <div className="px-4 py-1.5 bg-slate-100 md:bg-white/10 md:backdrop-blur-md text-slate-600 md:text-white rounded-xl md:rounded-2xl text-[10px] md:text-xs font-black uppercase tracking-[0.2em] border border-slate-200 md:border-white/20 shadow-sm md:shadow-lg">
                                 {profile?.role}
                             </div>
-                            <div className="flex items-center gap-2 text-slate-300 text-sm font-bold tracking-tight bg-black/20 px-4 py-2 rounded-2xl backdrop-blur-sm border border-white/5">
-                                <Mail size={16} className="text-primary-400" />
+                            <div className="flex items-center gap-2 text-slate-500 md:text-slate-300 text-xs md:text-sm font-bold tracking-tight bg-slate-50 md:bg-black/20 px-4 py-1.5 md:py-2 rounded-xl md:rounded-2xl md:backdrop-blur-sm border border-slate-200 md:border-white/5">
+                                <Mail size={14} className="text-primary-400" />
                                 {profile?.email}
                             </div>
                         </div>
@@ -70,23 +70,23 @@ const ProfilePage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="pt-20 grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="pt-32 md:pt-20 grid grid-cols-1 lg:grid-cols-3 gap-8 md:gap-10">
                 {/* Left Column: Stats & Meta */}
                 <div className="lg:col-span-2 space-y-10">
-                    <div className="grid grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                         {stats.map((stat, i) => (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
                                 key={stat.label}
-                                className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group"
+                                className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 group"
                             >
-                                <div className={clsx("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 duration-300", stat.bg)}>
-                                    <stat.icon className={stat.color} size={28} />
+                                <div className={clsx("w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-4 md:mb-6 transition-transform group-hover:scale-110 duration-300", stat.bg)}>
+                                    <stat.icon className={clsx("w-6 h-6 md:w-7 md:h-7", stat.color)} />
                                 </div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{stat.label}</p>
-                                <p className="text-3xl font-black text-slate-900 mt-2 tracking-tight">{stat.value}</p>
+                                <p className="text-2xl md:text-3xl font-black text-slate-900 mt-2 tracking-tight">{stat.value}</p>
                             </motion.div>
                         ))}
                     </div>
