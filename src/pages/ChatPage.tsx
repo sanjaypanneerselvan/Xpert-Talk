@@ -5,7 +5,8 @@ import {
     CheckCheck,
     Search,
     Shield,
-    ArrowLeft
+    ArrowLeft,
+    ChevronDown
 } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../hooks/useAuth';
@@ -129,28 +130,44 @@ const ChatPage: React.FC = () => {
                             <ArrowLeft size={20} strokeWidth={3} />
                         </button>
                         {selectedRecipient ? (
-                            <>
-                                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-base shadow-xl shadow-slate-900/20 border border-slate-800">
-                                    {(currentRecipient?.displayName?.charAt(0) || '').toUpperCase()}
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">{currentRecipient?.displayName}</h3>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <div className={clsx("w-2 h-2 rounded-full", currentRecipient?.online ? 'bg-emerald-500' : 'bg-slate-300')} />
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{currentRecipient?.online ? 'Online' : 'Offline'}</p>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMobileContacts(!showMobileContacts)}
+                                    className="flex items-center gap-4 text-left group md:pointer-events-none"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-base shadow-xl shadow-slate-900/20 border border-slate-800">
+                                        {(currentRecipient?.displayName?.charAt(0) || '').toUpperCase()}
                                     </div>
-                                </div>
-                            </>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">{currentRecipient?.displayName}</h3>
+                                            <ChevronDown size={16} className="text-slate-400 md:hidden" />
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className={clsx("w-2 h-2 rounded-full", currentRecipient?.online ? 'bg-emerald-500' : 'bg-slate-300')} />
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{currentRecipient?.online ? 'Online' : 'Offline'}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
                         ) : (
-                            <>
-                                <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black shadow-xl shadow-slate-900/20 border border-slate-800">
-                                    <Shield size={22} />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">General</h3>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Global Stream</p>
-                                </div>
-                            </>
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowMobileContacts(!showMobileContacts)}
+                                    className="flex items-center gap-4 text-left group md:pointer-events-none"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black shadow-xl shadow-slate-900/20 border border-slate-800">
+                                        <Shield size={22} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">General</h3>
+                                            <ChevronDown size={16} className="text-slate-400 md:hidden" />
+                                        </div>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Global Stream</p>
+                                    </div>
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
