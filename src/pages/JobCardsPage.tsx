@@ -6,7 +6,8 @@ import {
     Plus,
     X,
     CheckSquare,
-    Mail
+    Mail,
+    MoreVertical
 } from 'lucide-react';
 import { useJobCards } from '../hooks/useJobCards';
 import { SYSTEM_USERS } from '../hooks/useAuth';
@@ -19,6 +20,7 @@ const JobCardsPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterPriority] = useState<Priority | 'All'>('All');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [openMenuTaskId, setOpenMenuTaskId] = useState<string | null>(null);
 
     // Form State
     const [newTitle, setNewTitle] = useState('');
@@ -277,7 +279,8 @@ const JobCardsPage: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                        <div className="flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                                                        {/* Desktop Actions */}
+                                                        <div className="hidden md:flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                             <button
                                                                 onClick={async (e) => {
                                                                     e.stopPropagation();
@@ -305,6 +308,53 @@ const JobCardsPage: React.FC = () => {
                                                                 <span className="text-[10px] font-black uppercase tracking-widest">Update</span>
                                                                 <ChevronRight size={16} />
                                                             </button>
+                                                        </div>
+
+                                                        {/* Mobile Actions Dropdown */}
+                                                        <div className="md:hidden relative">
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setOpenMenuTaskId(openMenuTaskId === task.id ? null : task.id);
+                                                                }}
+                                                                className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-400 rounded-xl active:bg-slate-100 transition-colors"
+                                                            >
+                                                                <MoreVertical size={20} />
+                                                            </button>
+
+                                                            {openMenuTaskId === task.id && (
+                                                                <>
+                                                                    <div className="fixed inset-0 z-40" onClick={(e) => { e.stopPropagation(); setOpenMenuTaskId(null); }} />
+                                                                    <div className="absolute right-0 bottom-full mb-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                                                        <button
+                                                                            onClick={async (e) => {
+                                                                                e.stopPropagation();
+                                                                                setOpenMenuTaskId(null);
+                                                                                const success = await sendReminder(task.id);
+                                                                                if (success) alert(`Sent to ${task.assignedToName}! 📧`);
+                                                                            }}
+                                                                            className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-50 transition-colors text-slate-700"
+                                                                        >
+                                                                            <Mail size={16} className="text-slate-400" />
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest">Send Reminder</span>
+                                                                        </button>
+                                                                        <div className="h-px bg-slate-50 mx-4" />
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setOpenMenuTaskId(null);
+                                                                                setStatusUpdateTaskId(task.id);
+                                                                                setQuickUpdateNote('');
+                                                                                setQuickUpdateStatus(status);
+                                                                            }}
+                                                                            className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-slate-50 transition-colors text-slate-700"
+                                                                        >
+                                                                            <ChevronRight size={16} className="text-slate-400" />
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest">Update State</span>
+                                                                        </button>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
 
                                                     {status === 'Completed' && (
