@@ -13,6 +13,8 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../firebase/config';
 import type { JobCard, JobStatus } from '../types';
 import { useAuth } from './useAuth';
+import { sendEmailNotification } from '../utils/mail';
+import { SYSTEM_USERS } from './useAuth';
 
 export const useJobCards = () => {
     const [tasks, setTasks] = useState<JobCard[]>([]);
@@ -42,6 +44,7 @@ export const useJobCards = () => {
     const addTask = async (task: Omit<JobCard, 'id' | 'createdAt' | 'updatedAt'>) => {
         await addDoc(collection(db, 'tasks'), {
             ...task,
+            createdBy: user?.email,
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp(),
         });
@@ -65,6 +68,17 @@ export const useJobCards = () => {
                 read: false,
                 timestamp: serverTimestamp(),
             });
+
+            // Send Email Notification
+            sendEmailNotification({
+                to_name: task.assignedToName,
+                to_email: task.assignedTo,
+                from_name: profile?.displayName || 'System',
+                subject: `New Task Assigned: ${task.title}`,
+                message: `${profile?.displayName} has assigned a new task to you: "${task.title}".\n\nDescription: ${task.description}`,
+                link: '/tasks',
+                type: 'Task'
+            }).catch(err => console.error('Email failed:', err));
         }
     };
 
@@ -88,32 +102,62 @@ export const useJobCards = () => {
                 const userRef = doc(db, 'users', task.assignedTo);
                 updateDoc(userRef, {
                     productivityScore: (profile?.productivityScore || 0) + 1
-                });
+                }).catch(e => console.warn("Score update fail:", e));
             }
         }
 
         await updateDoc(taskRef, updateData);
 
-        // Notify CEO if task is updated or completed
         const task = tasks.find(t => t.id === taskId);
-        if (profile?.role !== 'CEO') {
-            await addDoc(collection(db, 'notifications'), {
-                userId: 'CEO_UID_PLACEHOLDER',
-                title: status === 'Completed' ? 'Task Completed' : 'Task Updated',
-                message: `${profile?.displayName} ${status === 'Completed' ? 'completed' : 'updated'}: ${task?.title}${updateNote ? ` - ${updateNote}` : ''}`,
-                link: '/tasks',
-                read: false,
-                timestamp: serverTimestamp(),
-            });
 
-            // Log activity
-            await addDoc(collection(db, 'activity'), {
-                userId: user?.uid,
-                userName: profile?.displayName,
-                action: status === 'Completed' ? 'task_completed' : 'task_updated',
-                details: `${status === 'Completed' ? 'Completed' : 'Updated'} task: ${task?.title}${updateNote ? ` with notes: ${updateNote}` : ''}`,
-                timestamp: serverTimestamp(),
+        // Notify Associated Mail IDs by Email
+        const recipients = new Set<string>();
+        if (task?.assignedTo) recipients.add(task.assignedTo);
+        if (task?.createdBy) recipients.add(task.createdBy);
+
+        recipients.forEach((email) => {
+            if (email !== user?.email && email.includes('@')) {
+                const info = SYSTEM_USERS[email];
+                sendEmailNotification({
+                    to_name: info?.name || email.split('@')[0],
+                    to_email: email,
+                    from_name: profile?.displayName || 'System',
+                    subject: `📧 Task Update: ${task?.title}`,
+                    message: `Status updated to: ${status}${updateNote ? `\nNote: ${updateNote}` : ''}`,
+                    link: '/tasks',
+                    type: 'Update'
+                }).catch(err => console.error('Email failed:', err));
+            }
+        });
+
+        // Log activity
+        await addDoc(collection(db, 'activity'), {
+            userId: user?.uid,
+            userName: profile?.displayName,
+            action: status === 'Completed' ? 'task_completed' : 'task_updated',
+            details: `${status === 'Completed' ? 'Completed' : 'Updated'} task: ${task?.title}${updateNote ? ` with notes: ${updateNote}` : ''}`,
+            timestamp: serverTimestamp(),
+        });
+    };
+
+    const sendReminder = async (taskId: string) => {
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        try {
+            await sendEmailNotification({
+                to_name: task.assignedToName,
+                to_email: task.assignedTo,
+                from_name: profile?.displayName || 'System',
+                subject: `Reminder: ${task.title}`,
+                message: `This is a friendly reminder for the task: "${task.title}"\n\nPlease check the progress and update the status in the Command Center.`,
+                link: '/tasks',
+                type: 'Reminder'
             });
+            return true;
+        } catch (error) {
+            console.error('Failed to send reminder:', error);
+            return false;
         }
     };
 
@@ -132,5 +176,5 @@ export const useJobCards = () => {
         });
     };
 
-    return { tasks, loading, addTask, updateTaskStatus, uploadProof };
+    return { tasks, loading, addTask, updateTaskStatus, uploadProof, sendReminder };
 };

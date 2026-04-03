@@ -5,7 +5,8 @@ import {
     ChevronRight,
     Plus,
     X,
-    CheckSquare
+    CheckSquare,
+    Mail
 } from 'lucide-react';
 import { useJobCards } from '../hooks/useJobCards';
 import { SYSTEM_USERS } from '../hooks/useAuth';
@@ -14,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 
 const JobCardsPage: React.FC = () => {
-    const { tasks, updateTaskStatus, addTask } = useJobCards();
+    const { tasks, updateTaskStatus, addTask, sendReminder } = useJobCards();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterPriority] = useState<Priority | 'All'>('All');
     const [showAddModal, setShowAddModal] = useState(false);
@@ -276,20 +277,35 @@ const JobCardsPage: React.FC = () => {
                                                         </div>
                                                     </div>
 
-                                                    {!isUpdating && status !== 'Completed' && (
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setStatusUpdateTaskId(task.id);
-                                                                setQuickUpdateNote('');
-                                                                setQuickUpdateStatus(status);
-                                                            }}
-                                                            className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-900 rounded-[1.25rem] border border-slate-200 opacity-0 group-hover:opacity-100 transition-all hover:bg-slate-900 hover:text-white shadow-xl shadow-slate-900/5 active:scale-95"
-                                                        >
-                                                            <span className="text-[10px] font-black uppercase tracking-widest">Update</span>
-                                                            <ChevronRight size={16} />
-                                                        </button>
-                                                    )}
+                                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                            <button
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    const success = await sendReminder(task.id);
+                                                                    if (success) {
+                                                                        alert(`Reminder email sent successfully to ${task.assignedToName}! 📧`);
+                                                                    } else {
+                                                                        alert('Failed to send reminder.');
+                                                                    }
+                                                                }}
+                                                                title="Send Email Reminder"
+                                                                className="flex items-center justify-center w-10 h-10 bg-white text-slate-900 rounded-[1.25rem] border border-slate-200 hover:bg-slate-900 hover:text-white shadow-xl shadow-slate-900/5 active:scale-95"
+                                                            >
+                                                                <Mail size={16} strokeWidth={3} />
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setStatusUpdateTaskId(task.id);
+                                                                    setQuickUpdateNote('');
+                                                                    setQuickUpdateStatus(status);
+                                                                }}
+                                                                className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-900 rounded-[1.25rem] border border-slate-200 hover:bg-slate-900 hover:text-white shadow-xl shadow-slate-900/5 active:scale-95"
+                                                            >
+                                                                <span className="text-[10px] font-black uppercase tracking-widest">Update</span>
+                                                                <ChevronRight size={16} />
+                                                            </button>
+                                                        </div>
 
                                                     {status === 'Completed' && (
                                                         <div className="w-10 h-10 flex items-center justify-center text-emerald-600 bg-emerald-100 rounded-2xl border border-emerald-200">

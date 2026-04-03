@@ -20,6 +20,7 @@ export interface JobCard {
     description: string;
     assignedTo: string; // User UID
     assignedToName: string;
+    createdBy?: string; // Email of the person who created the task
     deadline: any;
     status: JobStatus;
     priority: Priority;

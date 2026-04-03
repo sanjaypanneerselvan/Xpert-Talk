@@ -12,7 +12,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Project } from '../types';
-import { useAuth } from './useAuth';
+import { useAuth, SYSTEM_USERS } from './useAuth';
+import { sendEmailNotification } from '../utils/mail';
 
 export const useProjects = () => {
     const [projects, setProjects] = useState<Project[]>([]);
@@ -54,6 +55,22 @@ export const useProjects = () => {
                 updatedAt: serverTimestamp(),
             });
 
+            // Send Email Notification to associated mail IDs (team members)
+            project.teamMembers.forEach((email) => {
+                const info = SYSTEM_USERS[email];
+                if (email !== user.email) {
+                    sendEmailNotification({
+                        to_name: info?.name || email.split('@')[0],
+                        to_email: email,
+                        from_name: profile.displayName,
+                        subject: `New Project: ${project.title}`,
+                        message: `${profile.displayName} has created a new project: "${project.title}".\n\nStatus: ${project.status}\nDescription: ${project.description}`,
+                        link: '/projects',
+                        type: 'Project'
+                    }).catch(err => console.error('Email failed:', err));
+                }
+            });
+
             // Log activity
             await addDoc(collection(db, 'activity'), {
                 userId: user.uid,
@@ -84,6 +101,28 @@ export const useProjects = () => {
                 details: `Updated project: ${updates.title || projectId}`,
                 timestamp: serverTimestamp(),
             });
+
+            // Send Email Notification for Updates to associated mail IDs
+            if (updates.status || updates.title) {
+                const project = projects.find(p => p.id === projectId);
+                if (project) {
+                    const recipients = new Set([...project.teamMembers, project.ownerId]); // ownerId is stored as email in some contexts, but let's be safe
+                    recipients.forEach((email) => {
+                        if (email !== user?.email && email.includes('@')) {
+                            const info = SYSTEM_USERS[email];
+                            sendEmailNotification({
+                                to_name: info?.name || email.split('@')[0],
+                                to_email: email,
+                                from_name: profile?.displayName || 'System',
+                                subject: `📧 Project Update: ${updates.title || project.title}`,
+                                message: `Project details updated.\nNew Status: ${updates.status || 'Unchanged'}\nNew Title: ${updates.title || 'Unchanged'}`,
+                                link: '/projects',
+                                type: 'Update'
+                            }).catch(err => console.error('Email failed:', err));
+                        }
+                    });
+                }
+            }
         } catch (error) {
             console.error('Error updating project:', error);
             throw error;

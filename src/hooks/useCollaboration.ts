@@ -13,7 +13,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 import type { Idea, MoM, Comment } from '../types';
-import { useAuth } from './useAuth';
+import { useAuth, SYSTEM_USERS } from './useAuth';
+import { sendEmailNotification } from '../utils/mail';
 
 export const useCollaboration = () => {
     const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -46,6 +47,26 @@ export const useCollaboration = () => {
             likes: [],
             comments: [],
             createdAt: serverTimestamp(),
+        });
+
+        // Notify Associated Mail IDs about New Idea (Management)
+        const managementEmails = Object.entries(SYSTEM_USERS)
+            .filter(([_, info]) => info.role === 'CEO' || info.role === 'Co-Founder')
+            .map(([email]) => email);
+
+        managementEmails.forEach((email) => {
+            if (email !== user?.email) {
+                const info = SYSTEM_USERS[email];
+                sendEmailNotification({
+                    to_name: info.name,
+                    to_email: email,
+                    from_name: profile?.displayName || 'System',
+                    subject: `New Idea Posted: ${title}`,
+                    message: `${profile?.displayName} has posted a new idea: "${title}".\n\nContent: ${content}`,
+                    link: '/ideas',
+                    type: 'Idea'
+                }).catch(err => console.error('Email failed:', err));
+            }
         });
     };
 
