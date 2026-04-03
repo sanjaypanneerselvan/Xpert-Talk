@@ -5,7 +5,6 @@ import {
     CheckCheck,
     Search,
     Shield,
-    ArrowLeft,
     ChevronDown
 } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
@@ -20,7 +19,7 @@ const ChatPage: React.FC = () => {
     const { messages, users, sendMessage } = useChat(selectedRecipient || undefined);
     const [input, setInput] = useState('');
     const [userSearch, setUserSearch] = useState('');
-    const [showMobileContacts, setShowMobileContacts] = useState(true);
+    const [showUserDropdown, setShowUserDropdown] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -42,11 +41,8 @@ const ChatPage: React.FC = () => {
 
     return (
         <div className="h-[calc(100vh-140px)] flex bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
-            {/* Sidebar: Message Contacts */}
-            <div className={clsx(
-                "w-full md:w-96 border-r border-slate-100 flex flex-col bg-slate-50/30 transition-all duration-300 absolute md:relative inset-0 z-20 md:z-auto",
-                !showMobileContacts && "translate-x-[-100%] md:translate-x-0"
-            )}>
+            {/* Sidebar: Message Contacts (Desktop Only) */}
+            <div className="w-96 border-r border-slate-100 hidden md:flex flex-col bg-slate-50/30">
                 <div className="p-8 pb-4">
                     <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase mb-6">Messages</h2>
                     <div className="relative group">
@@ -63,7 +59,7 @@ const ChatPage: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-4 space-y-2 mt-4">
                     <button
-                        onClick={() => { setSelectedRecipient(null); setShowMobileContacts(false); }}
+                        onClick={() => setSelectedRecipient(null)}
                         className={clsx(
                             "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group",
                             !selectedRecipient
@@ -90,7 +86,7 @@ const ChatPage: React.FC = () => {
                     {filteredUsers.map(user => (
                         <button
                             key={user.uid}
-                            onClick={() => { setSelectedRecipient(user.uid); setShowMobileContacts(false); }}
+                            onClick={() => setSelectedRecipient(user.uid)}
                             className={clsx(
                                 "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group",
                                 selectedRecipient === user.uid
@@ -121,18 +117,12 @@ const ChatPage: React.FC = () => {
             {/* Main Chat Engine */}
             <div className="flex-1 flex flex-col bg-white">
                 {/* Channel Header */}
-                <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white">
+                <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white relative">
                     <div className="flex items-center gap-5">
-                        <button
-                            onClick={() => setShowMobileContacts(true)}
-                            className="md:hidden w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
-                        >
-                            <ArrowLeft size={20} strokeWidth={3} />
-                        </button>
                         {selectedRecipient ? (
                             <div className="relative">
                                 <button
-                                    onClick={() => setShowMobileContacts(!showMobileContacts)}
+                                    onClick={() => setShowUserDropdown(!showUserDropdown)}
                                     className="flex items-center gap-4 text-left group md:pointer-events-none"
                                 >
                                     <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-base shadow-xl shadow-slate-900/20 border border-slate-800">
@@ -140,8 +130,8 @@ const ChatPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">{currentRecipient?.displayName}</h3>
-                                            <ChevronDown size={16} className="text-slate-400 md:hidden" />
+                                            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase truncate max-w-[150px] sm:max-w-none">{currentRecipient?.displayName}</h3>
+                                            <ChevronDown size={16} className={clsx("text-slate-400 md:hidden transition-transform", showUserDropdown && "rotate-180")} />
                                         </div>
                                         <div className="flex items-center gap-2 mt-1">
                                             <div className={clsx("w-2 h-2 rounded-full", currentRecipient?.online ? 'bg-emerald-500' : 'bg-slate-300')} />
@@ -153,7 +143,7 @@ const ChatPage: React.FC = () => {
                         ) : (
                             <div className="relative">
                                 <button
-                                    onClick={() => setShowMobileContacts(!showMobileContacts)}
+                                    onClick={() => setShowUserDropdown(!showUserDropdown)}
                                     className="flex items-center gap-4 text-left group md:pointer-events-none"
                                 >
                                     <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black shadow-xl shadow-slate-900/20 border border-slate-800">
@@ -162,7 +152,7 @@ const ChatPage: React.FC = () => {
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">General</h3>
-                                            <ChevronDown size={16} className="text-slate-400 md:hidden" />
+                                            <ChevronDown size={16} className={clsx("text-slate-400 md:hidden transition-transform", showUserDropdown && "rotate-180")} />
                                         </div>
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Global Stream</p>
                                     </div>
@@ -170,6 +160,55 @@ const ChatPage: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {/* Mobile Dropdown Menu */}
+                    {showUserDropdown && (
+                        <div className="md:hidden">
+                            <div className="fixed inset-0 z-40 bg-black/5" onClick={() => setShowUserDropdown(false)} />
+                            <div className="absolute top-[calc(100%+8px)] left-6 right-6 bg-white rounded-3xl shadow-2xl border border-slate-100 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <div className="p-4 border-b border-slate-50 bg-slate-50/50">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Switch Channel</p>
+                                </div>
+                                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                    <button
+                                        onClick={() => { setSelectedRecipient(null); setShowUserDropdown(false); }}
+                                        className={clsx(
+                                            "w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors",
+                                            !selectedRecipient && "bg-slate-50"
+                                        )}
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                                            <Shield size={18} />
+                                        </div>
+                                        <div className="text-left font-black text-xs uppercase tracking-tight">General Channel</div>
+                                    </button>
+                                    
+                                    <div className="px-5 py-3 bg-white">
+                                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em]">Teammates</p>
+                                    </div>
+
+                                    {users.map(user => (
+                                        <button
+                                            key={user.uid}
+                                            onClick={() => { setSelectedRecipient(user.uid); setShowUserDropdown(false); }}
+                                            className={clsx(
+                                                "w-full flex items-center gap-4 p-4 hover:bg-slate-50 transition-colors",
+                                                selectedRecipient === user.uid && "bg-slate-50 text-slate-900"
+                                            )}
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center font-black text-xs uppercase text-slate-400 shadow-sm">
+                                                {(user.displayName?.charAt(0) || '').toUpperCase()}
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="font-black text-xs uppercase tracking-tight">{user.displayName}</p>
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{user.role}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Message Feed */}
