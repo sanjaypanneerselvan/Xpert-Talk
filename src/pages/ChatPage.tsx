@@ -4,7 +4,8 @@ import {
     Hash,
     CheckCheck,
     Search,
-    Shield
+    Shield,
+    ArrowLeft
 } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
 import { useAuth } from '../hooks/useAuth';
@@ -18,6 +19,7 @@ const ChatPage: React.FC = () => {
     const { messages, users, sendMessage } = useChat(selectedRecipient || undefined);
     const [input, setInput] = useState('');
     const [userSearch, setUserSearch] = useState('');
+    const [showMobileContacts, setShowMobileContacts] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -38,9 +40,12 @@ const ChatPage: React.FC = () => {
     const filteredUsers = users.filter(u => u.displayName.toLowerCase().includes(userSearch.toLowerCase()));
 
     return (
-        <div className="h-[calc(100vh-140px)] flex bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="h-[calc(100vh-140px)] flex bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-700 relative">
             {/* Sidebar: Message Contacts */}
-            <div className="w-96 border-r border-slate-100 hidden md:flex flex-col bg-slate-50/30">
+            <div className={clsx(
+                "w-full md:w-96 border-r border-slate-100 flex flex-col bg-slate-50/30 transition-all duration-300 absolute md:relative inset-0 z-20 md:z-auto",
+                !showMobileContacts && "translate-x-[-100%] md:translate-x-0"
+            )}>
                 <div className="p-8 pb-4">
                     <h2 className="text-2xl font-black text-slate-900 tracking-tight uppercase mb-6">Messages</h2>
                     <div className="relative group">
@@ -57,7 +62,7 @@ const ChatPage: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar px-4 space-y-2 mt-4">
                     <button
-                        onClick={() => setSelectedRecipient(null)}
+                        onClick={() => { setSelectedRecipient(null); setShowMobileContacts(false); }}
                         className={clsx(
                             "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group",
                             !selectedRecipient
@@ -84,7 +89,7 @@ const ChatPage: React.FC = () => {
                     {filteredUsers.map(user => (
                         <button
                             key={user.uid}
-                            onClick={() => setSelectedRecipient(user.uid)}
+                            onClick={() => { setSelectedRecipient(user.uid); setShowMobileContacts(false); }}
                             className={clsx(
                                 "w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group",
                                 selectedRecipient === user.uid
@@ -117,6 +122,12 @@ const ChatPage: React.FC = () => {
                 {/* Channel Header */}
                 <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white">
                     <div className="flex items-center gap-5">
+                        <button
+                            onClick={() => setShowMobileContacts(true)}
+                            className="md:hidden w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all"
+                        >
+                            <ArrowLeft size={20} strokeWidth={3} />
+                        </button>
                         {selectedRecipient ? (
                             <>
                                 <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-base shadow-xl shadow-slate-900/20 border border-slate-800">
