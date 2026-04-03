@@ -39,15 +39,22 @@ export const useNotifications = () => {
         };
 
         try {
-            const notif = new Notification(title, defaultOptions);
-            notif.onclick = () => {
-                window.focus();
-                notif.close();
-            };
-            console.log("Notification created successfully:", notif);
-            return notif;
+            // Mobile-first approach: use Service Worker if available
+            if ('serviceWorker' in navigator) {
+                const registration = await navigator.serviceWorker.ready;
+                registration.showNotification(title, defaultOptions);
+                console.log("Notification sent via Service Worker:", title);
+            } else {
+                // Fallback for browsers without SW support (old desktop)
+                const notif = new Notification(title, defaultOptions);
+                notif.onclick = () => {
+                    window.focus();
+                    notif.close();
+                };
+                console.log("Notification created via constructor:", notif);
+            }
         } catch (error) {
-            console.error("Error creating notification object:", error);
+            console.error("Error showing notification:", error);
         }
     };
 
