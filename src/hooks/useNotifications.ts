@@ -18,7 +18,7 @@ export const useNotifications = () => {
         }
     };
 
-    const showNotification = (title: string, options?: NotificationOptions) => {
+    const showNotification = async (title: string, options?: NotificationOptions) => {
         console.log("Attempting to show notification:", title, "Permission:", permission);
 
         if (typeof Notification === 'undefined') {
